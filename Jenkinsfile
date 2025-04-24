@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/mormbathie/projetfilerougedock.git'
+                git branch: 'Main', url: 'https://github.com/mormbathie/projetfilerougedock.git'
 
             }
         }
