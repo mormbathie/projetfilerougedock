@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.10'
-            args '-u root' // Exécuter les commandes en tant que root dans le conteneur
+            args '-u root'
         }
     }
 
@@ -28,32 +28,38 @@ pipeline {
             }
         }
 
-        stage('Build Frontend (React)') {
+        stage('Build Backend Image') {
+            steps {
+                script {
+                    def backendImage = docker.build("${env.IMAGE_BACKEND}", "./backend")
+                }
+            }
+        }
+
+        stage('Build Frontend Image') {
             steps {
                 dir('frontend') {
                     sh 'npm install'
                     sh 'npm run build'
                 }
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh 'docker build -t $IMAGE_BACKEND ./backend'
-                sh 'docker build -t $IMAGE_FRONTEND ./frontend'
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withDockerRegistry([credentialsId: "$DOCKER_HUB_CREDENTIALS", url: ""]) {
-                    sh 'docker push $IMAGE_BACKEND'
-                    sh 'docker push $IMAGE_FRONTEND'
+                script {
+                    def frontendImage = docker.build("${env.IMAGE_FRONTEND}", "./frontend")
                 }
             }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    docker.withRegistry('', "${DOCKER_HUB_CREDENTIALS}") {
+                        docker.image("${env.IMAGE_BACKEND}").push()
+                        docker.image("${env.IMAGE_FRONTEND}").push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy (Compose)') {
             steps {
                 sh 'docker-compose down || true'
                 sh 'docker-compose up -d'
@@ -63,14 +69,10 @@ pipeline {
 
     post {
         success {
-            mail to: 'mormbathie98@gmail.com',
-                 subject: "✔️ Build Success - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Le pipeline Jenkins a réussi avec succès ! 🎉"
+            echo "✅ Build succeeded"
         }
         failure {
-            mail to: 'mormbathie98@gmail.com',
-                 subject: "❌ Build Failed - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Le pipeline Jenkins a échoué. Va checker les logs dans Jenkins 😢"
+            echo "❌ Build failed"
         }
     }
 }
