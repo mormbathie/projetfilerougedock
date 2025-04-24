@@ -1,5 +1,10 @@
 pipeline {
     agent any
+        docker {
+            image 'python:3.10'
+            args '-u root'  // pour que pip puisse s’installer proprement si besoin
+        }
+    }
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('github-creds_odc')
