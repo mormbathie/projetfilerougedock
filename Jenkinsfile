@@ -1,8 +1,8 @@
 pipeline {
-    agent any
+    agent {
         docker {
             image 'python:3.10'
-            args '-u root'  // pour que pip puisse s’installer proprement si besoin
+            args '-u root' // Exécuter les commandes en tant que root dans le conteneur
         }
     }
 
@@ -16,7 +16,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'Main', url: 'https://github.com/mormbathie/projetfilerougedock.git'
-
             }
         }
 
@@ -56,7 +55,6 @@ pipeline {
 
         stage('Deploy with Docker Compose') {
             steps {
-                // Tu dois être dans le dossier où se trouve docker-compose.yml
                 sh 'docker-compose down || true'
                 sh 'docker-compose up -d'
             }
