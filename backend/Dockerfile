@@ -7,4 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn odc.wsgi:application --bind 0.0.0.0:8000"]
+RUN python manage.py collectstatic --noinput
+
+CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && gunicorn odc.wsgi:application --bind 0.0.0.0:8000"]

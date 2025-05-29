@@ -19,6 +19,7 @@ services:
     image: mormbathie/odc1-backend:latest
     volumes:
       - ./backend:/app
+      - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
     environment:
@@ -61,3 +62,4 @@ services:
 volumes:
   postgres_data:
   grafana_data:
+  static_volume:
