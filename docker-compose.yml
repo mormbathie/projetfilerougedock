@@ -15,8 +15,8 @@ services:
 
   backend:
     build: ./backend
-    container_name: odc_backend
-    image: odc_backend_image
+    container_name: odc-backend
+    image: mormbathie/odc1-backend:latest
     volumes:
       - ./backend:/app
     ports:
@@ -25,18 +25,39 @@ services:
       - DB_NAME=odcdb
       - DB_USER=odcuser
       - DB_PASSWORD=odcpass
-      - DB_HOST=db  # Cela fait référence au service 'db'
+      - DB_HOST=db
     depends_on:
-      - db  # Le backend attend que db soit lancé avant de démarrer
+      - db
 
   frontend:
     build: ./frontend
     container_name: odc_frontend
-    image: odc_frontend_image
+    image: mormbathie/odc1-frontend:latest
     ports:
       - "3000:80"
     depends_on:
       - backend
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
+  grafana_data:
